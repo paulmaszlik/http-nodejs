@@ -40,6 +40,8 @@
       const clients = [];
 
       const clientID = Math.round(Math.random()*100000000);
+      const clientColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+
       const domBody = document.getElementsByTagName("body")[0];
 
       form.addEventListener('submit', function(e) {
@@ -49,49 +51,6 @@
           input.value = '';
         }
       });
-
-      (function() {
-        
-
-        
-        
-          document.onmousemove = handleMouseMove;
-          function handleMouseMove(event) {
-              let eventDoc, doc, body, mouseX, mouseY, mouseXprev, mouseYprev;
-
-              event = event || window.event; // IE-ism
-
-              // If pageX/Y aren't available and clientX/Y are,
-              // calculate pageX/Y - logic taken from jQuery.
-              // (This is to support old IE)
-              if (event.pageX == null && event.clientX != null) {
-                  eventDoc = (event.target && event.target.ownerDocument) || document;
-                  doc = eventDoc.documentElement;
-                  body = eventDoc.body;
-
-                  event.pageX = event.clientX +
-                    (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-                    (doc && doc.clientLeft || body && body.clientLeft || 0);
-                  event.pageY = event.clientY +
-                    (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
-                    (doc && doc.clientTop  || body && body.clientTop  || 0 );
-              }
-
-              const intervalID = setInterval(() => {
-                mouseX = event.pageX;
-                mouseY = event.pageY;
-
-                if (mouseX !== mouseXprev || mouseY !== mouseYprev) {
-                  mouseXprev = mouseX;
-                  mouseYprev = mouseY;
-
-                  socket.emit('mouseMove', {mouseX, mouseY, clientID});
-                }
-              }, 50);
-
-              // Use event.pageX / event.pageY here
-          }
-      })();
 
       socket.on('chat message', ({msg, sender}) => {
         var item = document.createElement('li');
@@ -107,6 +66,7 @@
           elem = document.createElement('div');
           elem.setAttribute('class', 'mouseCursor')
           elem.setAttribute('id', moveDetails.clientID)
+          elem.style.backgroundColor = moveDetails.clientColor;
           elem.innerText = moveDetails.clientID;
           domBody.appendChild(elem);
         }
@@ -114,6 +74,27 @@
         elem.style.left = moveDetails.mouseX + 10 + 'px';
         elem.style.top = moveDetails.mouseY + 'px';
       });
+
+      (function() {
+          document.onmousemove = handleMouseMove;
+          function handleMouseMove(event) {
+              let mouseX, mouseY, mouseXprev, mouseYprev;
+
+              event = event || window.event; // IE-ism
+
+              const intervalID = setInterval(() => {
+                mouseX = event.pageX;
+                mouseY = event.pageY;
+
+                if (mouseX !== mouseXprev || mouseY !== mouseYprev) {
+                  mouseXprev = mouseX;
+                  mouseYprev = mouseY;
+
+                  socket.emit('mouseMove', {mouseX, mouseY, clientID, clientColor});
+                }
+              }, 50);
+          }
+      })();
     </script>
   </body>
 </html>
